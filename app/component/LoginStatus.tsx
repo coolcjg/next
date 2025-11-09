@@ -11,7 +11,11 @@ export default function LoginStatus({isAuthenticated, userName}: LoginStatusProp
     const router = useRouter();
 
     const handleLoginClick = () => {
-        router.push('/login');
+        router.push('/user/login');
+    }
+
+    const handleJoinClick = () => {
+        router.push('/user/join');
     }
 
     if(isAuthenticated){
@@ -29,6 +33,7 @@ export default function LoginStatus({isAuthenticated, userName}: LoginStatusProp
             <span>로그인이 필요합니다</span>
 
             <button onClick={handleLoginClick}>로그인</button>
+            <button onClick={handleJoinClick}>회원가입</button>
         </div>
     )
 
