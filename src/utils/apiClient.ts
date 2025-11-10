@@ -1,6 +1,7 @@
 import {tokenManager} from "@/src/utils/tokenManager";
 
-const REFRESH_URL:string = '/v1/auth/refresh';
+const HOME_URL:string|undefined = process.env.NEXT_PUBLIC_HOME_URL;
+const REFRESH_URL:string =  HOME_URL + '/v1/auth/refresh';
 
 async function refreshAccessToken(): Promise<string | null>{
     const refreshToken = tokenManager.getRefreshToken();

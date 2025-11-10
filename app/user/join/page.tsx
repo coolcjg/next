@@ -4,22 +4,56 @@ import {ChangeEvent, FormEvent, useState} from 'react';
 import {HomeResopnse} from "@/src/interfaces/common";
 import {apiClient} from "@/src/utils/apiClient";
 
+const HOME_URL:string| undefined = process.env.HOME_URL;
+
+
+interface PasswordFormState{
+    password:string,
+    passwordConfirm:string
+
+    validPassword:boolean,
+    validPasswordConfirm:boolean
+}
+
+
 interface JoinFormState{
     email:string;
+    name:string;
     password:string;
+    image:File | null;
 }
 
 export default function JoinPage(){
 
-    const [formData, setFormData] = useState<JoinFormState>({email:'', password:''});
+    const [formData, setFormData] = useState<JoinFormState>({email:'', name:'', password:'', image:null});
+    const [passwordData, setPasswordData] = useState<PasswordFormState>({password:'', passwordConfirm:'', validPassword:false, validPasswordConfirm:false});
     const [message, setMessage] = useState<string>('');
 
-    const handleInputChange = (e:ChangeEvent<HTMLInputElement>) => {
+    const handleTextChange = (e:ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
         setFormData((prev) =>({
             ...prev, [name]:value,
         }));
     };
+
+    const handlePasswordChange = (e:ChangeEvent<HTMLInputElement>) => {
+        const {name, value}= e.target;
+
+        setPasswordData((prev) =>({
+            ...prev, [name]:value
+        }));
+
+        if(passwordData.validPassword && passwordData.validPasswordConfirm){
+            setFormData((prev) => ({...prev, password: CryptoJS.SHA256(passwordData.password).toString(CryptoJS.enc.Hex)}))
+        }else{
+            setFormData((prev)=>({...prev, password:''}));
+        }
+    }
+
+    const handleFileChange = (e:ChangeEvent<HTMLInputElement>)=>{
+        const file= e.target.files ? e.target.files[0] : null;
+        setFormData(prev => ({...prev, image:file}));
+    }
 
     const handleSubmit = async (e:FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -27,7 +61,7 @@ export default function JoinPage(){
         setMessage('가입중...');
 
         try {
-            const response = await apiClient('/v1/user/', {
+            const response = await apiClient(HOME_URL+'/v1/user/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -53,18 +87,34 @@ export default function JoinPage(){
 
     }
 
+
+
     return(
         <div>
             <h1>회원가입</h1>
 
             <form onSubmit={handleSubmit}>
                 <label htmlFor="email">이메일:</label>
-                <input type="email" id="email" name="email" value={formData.email} onChange={handleInputChange}/>
+                <input type="email" id="email" name="email" value={formData.email} onChange={handleTextChange}/>
                 <br/>
+
+                <label htmlFor="name">이름:</label>
+                <input type="text" id="name" name="name" value={formData.name} onChange={handleTextChange}/>
+                <br/>
+
+                <label htmlFor="image">이미지:</label>
+                <input type="file" id="image" name="image" accept="image/*" onChange={handleFileChange}/>
+                <br/>
+
                 <label htmlFor="password">비밀번호:</label>
-                <input type="password" id="password" name="password" value={formData.password} onChange={handleInputChange}/>
+                <input type="password" id="password" name="password" value={passwordData.password} onChange={handlePasswordChange}/>
                 <br/>
-                <button type="submit">로그인</button>
+
+                <label htmlFor="passwordConfirm">비밀번호확인:</label>
+                <input type="password" id="passwordConfirm" name="passwordConfirm" value={passwordData.passwordConfirm} onChange={handlePasswordChange}/>
+                <br/>
+
+                <button type="submit">가입</button>
             </form>
         </div>
     );
