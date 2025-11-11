@@ -1,9 +1,13 @@
 'use client'
 
 import {ChangeEvent, FormEvent, useState} from 'react';
+import CryptoJS from "crypto-js";
+import {apiClient} from "@/src/utils/apiClient";
+
+const HOME_URL:string| undefined = process.env.NEXT_PUBLIC_HOME_URL;
 
 interface LoginFormState{
-    email:string;
+    userId:string;
     password:string;
 }
 
@@ -19,12 +23,13 @@ interface HomeResopnse{
 
 export default function LoginPage(){
 
-    const [formData, setFormData] = useState<LoginFormState>({email:'', password:''});
+    const [formState, setFormState] = useState<LoginFormState>({userId:'', password:''});
     const [message, setMessage] = useState<string>('');
 
     const handleInputChange = (e:ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
-        setFormData((prev) =>({
+
+        setFormState((prev) =>({
             ...prev, [name]:value,
         }));
     };
@@ -34,13 +39,22 @@ export default function LoginPage(){
 
         setMessage('로그인 중...');
 
+        const encryptedPassword:string = CryptoJS.SHA256(formState.password).toString(CryptoJS.enc.Hex);
+
+        const payload = {
+            userId : formState.userId,
+            password : encryptedPassword
+        }
+
+        console.log(payload);
+
         try {
-            const response = await fetch('/v1/user/login', {
+            const response = await apiClient(HOME_URL+'/v1/user/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
 
             if (response.ok) {
@@ -59,14 +73,6 @@ export default function LoginPage(){
             console.error('요청 중 오류 발생 : ' + error);
         }
 
-
-
-
-
-
-
-
-
     }
 
     return(
@@ -74,11 +80,11 @@ export default function LoginPage(){
             <h1>로그인</h1>
 
             <form onSubmit={handleSubmit}>
-                <label htmlFor="email">이메일:</label>
-                <input type="email" id="email" name="email" value={formData.email} onChange={handleInputChange}/>
+                <label htmlFor="userId">아이디:</label>
+                <input type="text" id="userId" name="userId" value={formState.userId} onChange={handleInputChange}/>
                 <br/>
                 <label htmlFor="password">비밀번호:</label>
-                <input type="password" id="password" name="password" value={formData.password} onChange={handleInputChange}/>
+                <input type="password" id="password" name="password" value={formState.password} onChange={handleInputChange}/>
                 <br/>
                 <button type="submit">로그인</button>
             </form>

@@ -1,12 +1,22 @@
 'use client'
 
 import {ChangeEvent, FormEvent, useState} from 'react';
-import {HomeResopnse} from "@/src/interfaces/common";
+import {HomeResponse} from "@/src/interfaces/common";
 import {apiClient} from "@/src/utils/apiClient";
 import CryptoJS from "crypto-js";
 import { useRouter } from 'next/navigation';
 
 const HOME_URL:string| undefined = process.env.NEXT_PUBLIC_HOME_URL;
+
+interface UserIdCountResponse{
+    count:number;
+}
+
+interface UserPostResponse{
+    userId:string;
+    name:string;
+    image:string;
+}
 
 interface PasswordFormState{
     password:string,
@@ -19,23 +29,73 @@ interface PasswordFormState{
 
 interface JoinFormState{
     userId:string;
+    validUserId:boolean;
+
     name:string;
-    password:string;
+    validName:boolean;
+
     image:File | null;
 }
 
 export default function JoinPage(){
 
     const router = useRouter();
-    const [formState, setFormState] = useState<JoinFormState>({userId:'', name:'', password:'', image:null});
+    const [formState, setFormState] = useState<JoinFormState>({userId:'', validUserId:false, name:'', validName:false, image:null});
     const [passwordData, setPasswordData] = useState<PasswordFormState>({password:'', passwordConfirm:'', validPassword:false, validPasswordConfirm:false});
     const [message, setMessage] = useState<string>('');
 
     const handleTextChange = (e:ChangeEvent<HTMLInputElement>) => {
+
         const {name, value} = e.target;
+
+        if(/\s/.test(value)){
+            return;
+        }
+
+        if(name == 'userId'){
+            validUserId(value);
+        }else if(name == 'name'){
+            validName(value);
+        }
+
         setFormState((prev) =>({
             ...prev, [name]:value,
         }));
+    };
+
+    const validName = (name:string) =>{
+        setFormState((prev) => ({
+            ...prev, validName:name.length > 0
+        }))
+    }
+
+    const validUserId = async(userId:string) =>{
+
+        const regex  = /^[a-z]+[a-z0-9]{3,19}$/g;
+        const result:boolean = regex.test(userId);
+
+        if(!result){
+            setFormState((prev) => ({
+                ...prev, validUserId:false
+            }))
+            return;
+        }
+
+        try {
+            const response = await apiClient(HOME_URL+ '/v1/user/'+userId+'/count',{
+                method: 'GET',
+            });
+
+            const data : HomeResponse<UserIdCountResponse> = await response.json();
+            const count:number = data.data.count;
+
+            setFormState((prev) => ({
+                ...prev, validUserId: (count == 0)
+            }));
+
+        }catch(error){
+            console.log(error);
+        }
     };
 
     const validPassword = (password:string) => {
@@ -88,15 +148,45 @@ export default function JoinPage(){
         setFormState(prev => ({...prev, image:file}));
     }
 
+    const validForm = ():boolean =>{
+
+        //아이디 체크
+        if(!formState.validUserId){
+            alert('아이디가 적합하지 않습니다');
+            return false;
+        }
+
+        //이름 체크
+        if(!formState.validName){
+            alert('이름이 적합하지 않습니다');
+            return false;
+        }
+
+        //비밀번호 체크
+        if(!passwordData.validPassword || !passwordData.validPasswordConfirm){
+            alert('패스워드가 적합하지 않습니다');
+            return false;
+        }
+
+        return true;
+    }
+
+
+
+
     const handleSubmit = async (e:FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         setMessage('가입중...');
 
+        if(!validForm()){
+            return;
+        }
+
         const formData = new FormData();
         formData.append('userId',formState.userId);
         formData.append('name',formState.name);
-        formData.append('password',formState.password);
+        formData.append('password',CryptoJS.SHA256(passwordData.password).toString(CryptoJS.enc.Hex));
 
         if(formState.image != null){
             formData.append('image', formState.image);
@@ -109,12 +199,12 @@ export default function JoinPage(){
             });
 
             if (response.ok) {
-                const data : HomeResopnse = await response.json();
+                const data : HomeResponse<UserPostResponse> = await response.json();
                 setMessage(`가입 성공! ${data.message}`);
                 alert('회원 가입이 완료되었습니다. 로그인 페이지로 이동됩니다');
                 router.push('/user/login');
             } else {
-                const errorData: HomeResopnse = await response.json();
+                const errorData: HomeResponse<UserPostResponse> = await response.json();
                 setMessage(`가입 실패: ${errorData.message}`);
                 console.error('가입실패:', errorData);
             }
@@ -133,9 +223,14 @@ export default function JoinPage(){
             <h1>회원가입</h1>
 
             <form onSubmit={handleSubmit}>
-                <div>
+                <div style={{display:'flex'}}>
                 <label htmlFor="userId">아이디:</label>
                 <input type="text" id="userId" name="userId" value={formState.userId} onChange={handleTextChange}/>
+                    <div>
+                        {
+                            formState.validUserId ? '적합한 아이디입니다' : '아이디가 적합하지 않거나 중복입니다.(아이디는 영문 소문자로 시작, 영문소문자 + 숫자 조합 4~20자리만 가능)'
+                        }
+                    </div>
                 </div>
 
                 <div>
