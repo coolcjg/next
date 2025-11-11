@@ -3,9 +3,10 @@
 import {ChangeEvent, FormEvent, useState} from 'react';
 import {HomeResopnse} from "@/src/interfaces/common";
 import {apiClient} from "@/src/utils/apiClient";
+import CryptoJS from "crypto-js";
+import { useRouter } from 'next/navigation';
 
-const HOME_URL:string| undefined = process.env.HOME_URL;
-
+const HOME_URL:string| undefined = process.env.NEXT_PUBLIC_HOME_URL;
 
 interface PasswordFormState{
     password:string,
@@ -17,7 +18,7 @@ interface PasswordFormState{
 
 
 interface JoinFormState{
-    email:string;
+    userId:string;
     name:string;
     password:string;
     image:File | null;
@@ -25,16 +26,40 @@ interface JoinFormState{
 
 export default function JoinPage(){
 
-    const [formData, setFormData] = useState<JoinFormState>({email:'', name:'', password:'', image:null});
+    const router = useRouter();
+    const [formState, setFormState] = useState<JoinFormState>({userId:'', name:'', password:'', image:null});
     const [passwordData, setPasswordData] = useState<PasswordFormState>({password:'', passwordConfirm:'', validPassword:false, validPasswordConfirm:false});
     const [message, setMessage] = useState<string>('');
 
     const handleTextChange = (e:ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
-        setFormData((prev) =>({
+        setFormState((prev) =>({
             ...prev, [name]:value,
         }));
     };
+
+    const validPassword = (password:string) => {
+
+        const regex = /^(?=.*[0-9])(?=.*[A-Za-z])(?=.*[`~!@#$%^&*\\(\\)\-_=+]).{8,20}$/g
+        const result:boolean = regex.test(password) && (password.search(/\s/) === -1);
+
+        setPasswordData((prev:PasswordFormState)=>
+            ({
+                ...prev, validPassword:result, validPasswordConfirm:password == passwordData.passwordConfirm
+            })
+        );
+    }
+
+    const validPasswordConfirm = (password:string) => {
+
+        const result:boolean = passwordData.password == password;
+
+        setPasswordData((prev:PasswordFormState)=>
+            ({
+                ...prev, validPasswordConfirm:result
+            })
+        );
+    }
 
     const handlePasswordChange = (e:ChangeEvent<HTMLInputElement>) => {
         const {name, value}= e.target;
@@ -43,16 +68,24 @@ export default function JoinPage(){
             ...prev, [name]:value
         }));
 
+        if(name == 'password'){
+            validPassword(value);
+        }
+
+        if(name == 'passwordConfirm'){
+            validPasswordConfirm(value);
+        }
+
         if(passwordData.validPassword && passwordData.validPasswordConfirm){
-            setFormData((prev) => ({...prev, password: CryptoJS.SHA256(passwordData.password).toString(CryptoJS.enc.Hex)}))
+            setFormState((prev) => ({...prev, password: CryptoJS.SHA256(passwordData.password).toString(CryptoJS.enc.Hex)}))
         }else{
-            setFormData((prev)=>({...prev, password:''}));
+            setFormState((prev)=>({...prev, password:''}));
         }
     }
 
     const handleFileChange = (e:ChangeEvent<HTMLInputElement>)=>{
         const file= e.target.files ? e.target.files[0] : null;
-        setFormData(prev => ({...prev, image:file}));
+        setFormState(prev => ({...prev, image:file}));
     }
 
     const handleSubmit = async (e:FormEvent<HTMLFormElement>) => {
@@ -60,20 +93,26 @@ export default function JoinPage(){
 
         setMessage('가입중...');
 
+        const formData = new FormData();
+        formData.append('userId',formState.userId);
+        formData.append('name',formState.name);
+        formData.append('password',formState.password);
+
+        if(formState.image != null){
+            formData.append('image', formState.image);
+        };
+
         try {
-            const response = await apiClient(HOME_URL+'/v1/user/', {
+            const response = await apiClient(HOME_URL+'/v1/user', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
+                body: formData,
             });
 
             if (response.ok) {
                 const data : HomeResopnse = await response.json();
                 setMessage(`가입 성공! ${data.message}`);
-                console.log('가입 성공 데이터:', data);
-
+                alert('회원 가입이 완료되었습니다. 로그인 페이지로 이동됩니다');
+                router.push('/user/login');
             } else {
                 const errorData: HomeResopnse = await response.json();
                 setMessage(`가입 실패: ${errorData.message}`);
@@ -94,25 +133,45 @@ export default function JoinPage(){
             <h1>회원가입</h1>
 
             <form onSubmit={handleSubmit}>
-                <label htmlFor="email">이메일:</label>
-                <input type="email" id="email" name="email" value={formData.email} onChange={handleTextChange}/>
-                <br/>
+                <div>
+                <label htmlFor="userId">아이디:</label>
+                <input type="text" id="userId" name="userId" value={formState.userId} onChange={handleTextChange}/>
+                </div>
 
+                <div>
                 <label htmlFor="name">이름:</label>
-                <input type="text" id="name" name="name" value={formData.name} onChange={handleTextChange}/>
-                <br/>
+                <input type="text" id="name" name="name" value={formState.name} onChange={handleTextChange}/>
+                </div>
 
+
+                <div>
                 <label htmlFor="image">이미지:</label>
                 <input type="file" id="image" name="image" accept="image/*" onChange={handleFileChange}/>
-                <br/>
+                </div>
 
+                <div style={{display:'flex'}}>
                 <label htmlFor="password">비밀번호:</label>
                 <input type="password" id="password" name="password" value={passwordData.password} onChange={handlePasswordChange}/>
-                <br/>
+                <div>
+                    {passwordData.validPassword ?
+                        <div>입력 확인</div> :
+                        <div>영문자, 숫자 특수문자(`~!@#$%^&*()-_=+) 조합 8~20자리가 필요합니다</div>
+                    }
+                </div>
 
-                <label htmlFor="passwordConfirm">비밀번호확인:</label>
-                <input type="password" id="passwordConfirm" name="passwordConfirm" value={passwordData.passwordConfirm} onChange={handlePasswordChange}/>
-                <br/>
+                </div>
+
+                <div style={{display:'flex'}}>
+                    <label htmlFor="passwordConfirm">비밀번호확인:</label>
+                    <input type="password" id="passwordConfirm" name="passwordConfirm" value={passwordData.passwordConfirm} onChange={handlePasswordChange}/>
+
+                    <div>
+                        {passwordData.validPasswordConfirm?
+                            <div>입력 확인</div> :
+                            <div>위에서 입력한 비밀번호를 한번 더 입력해주세요.</div>
+                        }
+                    </div>
+                </div>
 
                 <button type="submit">가입</button>
             </form>
