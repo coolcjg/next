@@ -3,6 +3,8 @@
 import {ChangeEvent, FormEvent, useState} from 'react';
 import CryptoJS from "crypto-js";
 import {apiClient} from "@/src/utils/apiClient";
+import {HomeResponse} from "@/src/interfaces/common";
+import {useAuthStore} from '@/src/store/useAuthStore';
 
 const HOME_URL:string| undefined = process.env.NEXT_PUBLIC_HOME_URL;
 
@@ -15,16 +17,19 @@ interface DynamicObject {
     [key: string]: unknown; // 모든 문자열 키에 대해 unknown 타입의 값을 가질 수 있음
 }
 
-interface HomeResopnse{
-    code:string;
-    message:string;
-    data:DynamicObject;
+interface loginResponse{
+    userId:string;
+    name:string;
+    accessToken:string;
+    refreshToken:string;
 }
 
 export default function LoginPage(){
 
     const [formState, setFormState] = useState<LoginFormState>({userId:'', password:''});
     const [message, setMessage] = useState<string>('');
+    const login = useAuthStore((state) => state.login);
+
 
     const handleInputChange = (e:ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
@@ -46,8 +51,6 @@ export default function LoginPage(){
             password : encryptedPassword
         }
 
-        console.log(payload);
-
         try {
             const response = await apiClient(HOME_URL+'/v1/user/login', {
                 method: 'POST',
@@ -58,12 +61,15 @@ export default function LoginPage(){
             });
 
             if (response.ok) {
-                const data : HomeResopnse = await response.json();
+                const data : HomeResponse<loginResponse> = await response.json();
                 setMessage(`로그인 성공! ${data.message}`);
                 console.log('로그인 성공 데이터:', data);
 
+                login(data.data.accessToken, data.data.refreshToken, data.data.userId);
+
+
             } else {
-                const errorData: HomeResopnse = await response.json();
+                const errorData: HomeResponse<loginResponse> = await response.json();
                 setMessage(`로그인 실패: ${errorData.message}`);
                 console.error('로그인 실패:', errorData);
             }

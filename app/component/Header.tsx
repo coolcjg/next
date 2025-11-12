@@ -1,26 +1,23 @@
+'use client'
+
 import LoginStatus from "@/app/component/LoginStatus";
-import {getCookie} from "cookies-next";
+import {useAuthStore} from "@/src/store/useAuthStore"; // 💡 shallow import
 
 export default function Header(){
 
-    const userInfoCookie = getCookie('user_info');
+    const {userId, hasHydrated} = useAuthStore();
 
-    let userInfo = null;
-
-    if(userInfoCookie && typeof userInfoCookie === 'string'){
-        try{
-            userInfo = JSON.parse(userInfoCookie);
-        }catch(e){
-            console.error('Failed to parse user info cookie:', e);
-        }
+    if(!hasHydrated){
+        return (
+            <header>
+                로딩중
+            </header>
+        )
     }
-
-    const isAuthenticated:boolean = !!userInfo;
-
 
     return(
         <header>
-            <LoginStatus isAuthenticated={isAuthenticated} userName={userInfo?.uerName || null}/>
+            <LoginStatus isAuthenticated={!!userId} userName={userId}/>
         </header>
     )
 }

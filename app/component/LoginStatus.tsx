@@ -1,6 +1,7 @@
 'use client';
 
 import {useRouter} from 'next/navigation'
+import {useAuthStore} from "@/src/store/useAuthStore"; // 💡 shallow import
 
 interface LoginStatusProps {
     isAuthenticated?: boolean,
@@ -8,10 +9,17 @@ interface LoginStatusProps {
 }
 
 export default function LoginStatus({isAuthenticated, userName}: LoginStatusProps) {
+
     const router = useRouter();
+    const {logout} = useAuthStore();
 
     const handleLoginClick = () => {
         router.push('/user/login');
+    }
+
+    const handleLogoutClick = () => {
+        logout();
+        router.push('/');
     }
 
     const handleJoinClick = () => {
@@ -23,7 +31,7 @@ export default function LoginStatus({isAuthenticated, userName}: LoginStatusProp
             <div>
                 <span>{userName} 환영합니다.</span>
 
-                <button onClick={handleLoginClick}>로그아웃</button>
+                <button onClick={handleLogoutClick}>로그아웃</button>
             </div>
         )
     }
