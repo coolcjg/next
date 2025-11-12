@@ -5,6 +5,7 @@ import CryptoJS from "crypto-js";
 import {apiClient} from "@/src/utils/apiClient";
 import {HomeResponse} from "@/src/interfaces/common";
 import {useAuthStore} from '@/src/store/useAuthStore';
+import {useRouter} from "next/navigation";
 
 const HOME_URL:string| undefined = process.env.NEXT_PUBLIC_HOME_URL;
 
@@ -26,6 +27,7 @@ interface loginResponse{
 
 export default function LoginPage(){
 
+    const router = useRouter();
     const [formState, setFormState] = useState<LoginFormState>({userId:'', password:''});
     const [message, setMessage] = useState<string>('');
     const login = useAuthStore((state) => state.login);
@@ -52,21 +54,19 @@ export default function LoginPage(){
         }
 
         try {
-            const response = await apiClient(HOME_URL+'/v1/user/login', {
+            const response = await fetch('/v1/user/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify(payload),
             });
 
             if (response.ok) {
+
                 const data : HomeResponse<loginResponse> = await response.json();
                 setMessage(`로그인 성공! ${data.message}`);
                 console.log('로그인 성공 데이터:', data);
 
                 login(data.data.accessToken, data.data.refreshToken, data.data.userId);
-
+                router.push('/');
 
             } else {
                 const errorData: HomeResponse<loginResponse> = await response.json();

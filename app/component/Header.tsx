@@ -16,8 +16,11 @@ export default function Header(){
     }
 
     return(
-        <header>
+        <header style={{display:'flex', justifyContent:'space-between'}}>
+            <div>게시판</div>
+            <div>
             <LoginStatus isAuthenticated={!!userId} userName={userId}/>
+            </div>
         </header>
     )
 }

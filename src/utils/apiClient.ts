@@ -1,10 +1,12 @@
 import {tokenManager} from "@/src/utils/tokenManager";
-
+import { useAuthStore } from "@/src/store/useAuthStore";
 const HOME_URL:string|undefined = process.env.NEXT_PUBLIC_HOME_URL;
 const REFRESH_URL:string =  HOME_URL + '/v1/auth/refresh';
 
+
 async function refreshAccessToken(): Promise<string | null>{
-    const refreshToken = tokenManager.getRefreshToken();
+    const { refreshToken, login} = useAuthStore.getState();
+    //const refreshToken = tokenManager.getRefreshToken();
 
     if(!refreshToken){
         alert('Refresh token not provided');
@@ -22,18 +24,22 @@ async function refreshAccessToken(): Promise<string | null>{
         });
 
         if(response.ok){
-            const data:{accessToken:string; refreshToken?:string} = await response.json();
-            tokenManager.setToken(data.accessToken, data.refreshToken || refreshToken);
+            const data:{accessToken:string; refreshToken:string, userId:string} = await response.json();
+
+            login(data.accessToken, data.refreshToken, data.userId)
+            //tokenManager.setToken(data.accessToken, data.refreshToken || refreshToken);
+
             return data.accessToken;
         }else{
-            tokenManager.clearTokens();
+            //tokenManager.clearTokens();
             throw new Error('토큰 갱신 실패. 다시 로그인하세요.');
 
         }
 
     }catch(error){
-        console.error('토큰 갱신중 오류 발생 : ', error);;
-        tokenManager.clearTokens();
+        console.error('토큰 갱신중 오류 발생 : ', error);
+
+        //tokenManager.clearTokens();
         return null;
     }
 }
@@ -42,7 +48,9 @@ export async function apiClient<T>(
     url:string,
     options:RequestInit = {}
 ):Promise<Response>{
-    const accessToken = tokenManager.getAccessToken();
+
+    const { accessToken} = useAuthStore.getState();
+    //const accessToken = tokenManager.getAccessToken();
     const headers = new Headers(options.headers);
     
     if(accessToken){
