@@ -1,5 +1,7 @@
-import {apiClient} from "@/src/utils/apiClient";
+'use client'
+
 import {HomeResponse} from "@/src/interfaces/common";
+import {useEffect, useState} from "react";
 
 const HOME_URL:string| undefined = process.env.NEXT_PUBLIC_HOME_URL;
 
@@ -24,41 +26,49 @@ interface ListResponse {
     searchText:string
 }
 
+interface PostListRequest{
+    searchType:string
+    searchText:string
+    pageNumber:number
+    pageSize:number
+}
 
-export default async function PostList(){
+export default function PostList(){
 
-    try {
-        const response = await apiClient(HOME_URL+'/post/list', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            cache:"no-store",
-        });
+    const [data, setData] = useState<ListResponse | null>(null);
 
-        if (response.ok) {
-            const data : HomeResponse<ListResponse> = await response.json();
-            console.log(data);
-        } else {
+    useEffect(()=>{
+        const fetchData = async () =>{
 
-        }
+            try {
+                const response = await fetch('/api/post/list', {
+                    method: 'GET',
+                });
 
-    }catch(error){
+                if (response.ok) {
+                    const data : HomeResponse<ListResponse> = await response.json();
+                    console.log(data);
+                    setData(data.data);
+                } else {
 
-        console.error('요청 중 오류 발생 : ' + error);
-    }
+                }
 
+            }catch(error){
 
+                console.error('요청 중 오류 발생 : ' + error);
+            }
+        };
 
+        fetchData();
 
+    }, []);
 
     return(
         <div>
             <div>
-
-                테이블 영역
-
-
+                {data && data.list.map(post =>
+                    <div key = {post.postId}> Post {post.postId} </div>
+                )}
             </div>
 
             <div>

@@ -54,7 +54,7 @@ export default function LoginPage(){
         }
 
         try {
-            const response = await fetch('/v1/user/login', {
+            const response = await fetch('/api/user/login', {
                 method: 'POST',
                 body: JSON.stringify(payload),
             });
