@@ -1,6 +1,4 @@
 import {NextResponse} from "next/server";
-import {apiClient} from "@/src/utils/apiClient";
-import {HomeResponse} from "@/src/interfaces/common";
 
 interface LoginResponse{
     userId:string;
@@ -18,7 +16,7 @@ export async function POST(req:Request){
         console.log("요청 파라미터");
         console.log(body);
 
-        const response = await apiClient<HomeResponse<LoginResponse>>(HOME_URL+'/user/login', {
+        const response = await fetch(HOME_URL+'/user/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

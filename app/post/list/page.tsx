@@ -2,8 +2,7 @@
 
 import {HomeResponse} from "@/src/interfaces/common";
 import {useEffect, useState} from "react";
-
-const HOME_URL:string| undefined = process.env.NEXT_PUBLIC_HOME_URL;
+import {useRouter} from "next/navigation";
 
 interface Post{
     postId:number
@@ -36,6 +35,7 @@ interface PostListRequest{
 export default function PostList(){
 
     const [data, setData] = useState<ListResponse | null>(null);
+    const router = useRouter();
 
     useEffect(()=>{
         const fetchData = async () =>{
@@ -72,7 +72,7 @@ export default function PostList(){
             </div>
 
             <div>
-                <button>등록</button>
+                <button onClick={()=>router.push('/post/write')}>등록</button>
             </div>
         </div>
     );

@@ -1,4 +1,5 @@
-import {tokenManager} from "@/src/utils/tokenManager";
+'use client'
+
 import { useAuthStore } from "@/src/store/useAuthStore";
 const HOME_URL:string|undefined = process.env.NEXT_PUBLIC_HOME_URL;
 const REFRESH_URL:string =  HOME_URL + '/v1/auth/refresh';
@@ -44,21 +45,23 @@ async function refreshAccessToken(): Promise<string | null>{
     }
 }
 
-export async function apiClient<T>(
+export async function apiClientJSON<T>(
     url:string,
     options:RequestInit = {}
 ):Promise<Response>{
+    const {method = "GET", headers = {}, body } = options;
+    const {accessToken} = useAuthStore.getState();
+    const finalHeaders = new Headers(headers);
 
-    const { accessToken} = useAuthStore.getState();
-    //const accessToken = tokenManager.getAccessToken();
-    const headers = new Headers(options.headers);
-    
-    if(accessToken){
-        headers.set('Authorization', `Bearer ${accessToken}`);
+    if(accessToken !== undefined && accessToken !== null){
+        finalHeaders.append("Authorization", `Bearer ${accessToken}`);
     }
-    options.headers = headers;
 
-    let response = await fetch(url, options);
+    let response = await fetch(url, {
+        method,
+        headers : finalHeaders,
+        body:body
+    });
 
     if(response.status === 401 && accessToken){
         console.log("Access Token 만료 감지. 갱신 시도...");
@@ -68,10 +71,13 @@ export async function apiClient<T>(
         if(newAccessToken){
             console.log("AccessToken 갱신 성공. 요청 재시도...");
 
-            headers.set('Authorization', `Bearer ${accessToken}`);
-            options.headers = headers;
+            finalHeaders.append("Authorization", `Bearer ${newAccessToken}`);
 
-            response = await fetch(url, options);
+            response = await fetch(url, {
+                method,
+                headers : finalHeaders,
+
+            });
         }else{
             throw new Error('로그인이 만료되었습니다');
         }

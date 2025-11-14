@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
-import {apiClient} from "@/src/utils/apiClient";
 import {HomeResponse} from "@/src/interfaces/common";
+import {apiClientJSON} from "@/src/utils/apiClientJSON";
 
 interface Post{
     postId:number
@@ -34,7 +34,7 @@ export async function GET(req:Request){
 
         const page:string = searchParams.get("page") || "1";
 
-        const response = await apiClient<HomeResponse<ListResponse>>(HOME_URL+`/post/list?${searchParams.toString()}`, {
+        const response = await apiClientJSON<HomeResponse<ListResponse>>(HOME_URL+`/post/list?${searchParams.toString()}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

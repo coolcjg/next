@@ -1,26 +1,23 @@
 'use client'
 
 import LoginStatus from "@/app/component/LoginStatus";
-import {useAuthStore} from "@/src/store/useAuthStore"; // 💡 shallow import
+import {useAuthStore} from "@/src/store/useAuthStore";
+import {useRouter} from "next/navigation"; // 💡 shallow import
 
 export default function Header(){
 
-    const {userId, hasHydrated} = useAuthStore();
+    const router = useRouter();
 
-    if(!hasHydrated){
-        return (
-            <header>
-                로딩중
-            </header>
-        )
-    }
+    const {userId, hasHydrated} = useAuthStore();
 
     return(
         <header style={{display:'flex', justifyContent:'space-between'}}>
-            <div>게시판</div>
-            <div>
-            <LoginStatus isAuthenticated={!!userId} userName={userId}/>
-            </div>
+            <div style={{cursor:'pointer'}} onClick={() => router.push('/post/list')}>게시판</div>
+            {hasHydrated &&
+                <div>
+                    <LoginStatus isAuthenticated={!!userId} userName={userId}/>
+                </div>
+            }
         </header>
     )
 }

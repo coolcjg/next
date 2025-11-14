@@ -2,7 +2,7 @@
 
 import {ChangeEvent, FormEvent, useState} from 'react';
 import {HomeResponse} from "@/src/interfaces/common";
-import {apiClient} from "@/src/utils/apiClient";
+import {apiClientJSON} from "@/src/utils/apiClientJSON";
 import CryptoJS from "crypto-js";
 import { useRouter } from 'next/navigation';
 
@@ -82,7 +82,7 @@ export default function JoinPage(){
         }
 
         try {
-            const response = await apiClient(HOME_URL+ '/v1/user/'+userId+'/count',{
+            const response = await apiClientJSON(HOME_URL+ '/v1/user/'+userId+'/count',{
                 method: 'GET',
             });
 
@@ -193,7 +193,7 @@ export default function JoinPage(){
         };
 
         try {
-            const response = await apiClient(HOME_URL+'/v1/user', {
+            const response = await apiClientJSON(HOME_URL+'/v1/user', {
                 method: 'POST',
                 body: formData,
             });

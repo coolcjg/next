@@ -2,7 +2,6 @@
 
 import {ChangeEvent, FormEvent, useState} from 'react';
 import CryptoJS from "crypto-js";
-import {apiClient} from "@/src/utils/apiClient";
 import {HomeResponse} from "@/src/interfaces/common";
 import {useAuthStore} from '@/src/store/useAuthStore';
 import {useRouter} from "next/navigation";
