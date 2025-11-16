@@ -5,12 +5,11 @@ const HOME_URL = process.env.NEXT_PUBLIC_HOME_URL;
 
 export async function GET(req:Request){
     try{
-        const {searchParams} = new URL(req.url);
 
-        console.log("요청 파라미터");
-        console.log(searchParams);
+        const requestUrl = new URL(req.url);
+        const searchParams = requestUrl.searchParams.toString();
 
-        const response = await fetch(HOME_URL+'/post/list', {
+        const response = await fetch(HOME_URL + `/post/list?${searchParams}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

@@ -49,9 +49,8 @@ export async function apiClientJSON<T>(
     options:RequestInit = {}
 ):Promise<Response>{
     const {method = "GET", headers = {}, body } = options;
-    const {accessToken} = useAuthStore.getState();
+    const {accessToken, logout} = useAuthStore.getState();
     const finalHeaders = new Headers(headers);
-    const {logout} = useAuthStore.getState();
 
     if(accessToken !== undefined && accessToken !== null){
         finalHeaders.append("Authorization", `Bearer ${accessToken}`);
