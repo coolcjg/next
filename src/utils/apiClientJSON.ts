@@ -25,7 +25,7 @@ async function refreshAccessToken(): Promise<string | null>{
 
         const data:HomeResponse<UserLoginResponse> = await response.json();
 
-        if(response.ok && data.code === "200"){
+        if(response.ok && data.code === 200){
 
             console.log("새로운 refreshToken 정보");
             console.log(data);

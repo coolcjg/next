@@ -90,7 +90,37 @@ export default function PostList(){
 
     const deleteItem = async ()=>{
         console.log("delete");
-        console.log(checkedItems);
+
+        const payload = {
+            postIds : checkedItems
+        }
+
+        console.log("payload");
+        console.log(payload);
+
+        try{
+            const response = await apiClientJSON('/api/post', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+
+            const data:HomeResponse<null> = await response.json();
+            console.log("server data");
+            console.log(data)
+
+            if(data.code === 200){
+                alert('삭제 성공');
+                await fetchData();
+            }else{
+                alert('삭제 실패');
+            }
+
+        }catch(error){
+            console.error(error);
+        }
     }
 
     return(

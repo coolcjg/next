@@ -3,7 +3,7 @@ export interface DynamicObject {
 }
 
 export interface HomeResponse<T>{
-    code:string;
+    code:number;
     message:string;
     data:T;
 }
