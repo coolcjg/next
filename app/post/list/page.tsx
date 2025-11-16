@@ -136,6 +136,7 @@ export default function PostList(){
                         <tr>
                             <th><input type="checkbox" id="checkAll" checked={checkedItems.length === data.list.length} onChange={(e)=>handleCheckAllItems(e)}/></th>
                             <th>제목</th>
+                            <th>내용</th>
                             <th>아이디</th>
                             <th>등록일</th>
                         </tr>
@@ -145,6 +146,7 @@ export default function PostList(){
                             <tr key={post.postId}>
                                 <td><input type="checkbox" checked={checkedItems.includes(post.postId)} onChange={()=> handleCheckItems(post.postId)}/></td>
                                 <td>{post.title}</td>
+                                <td>{post.content}</td>
                                 <td>{post.userId}</td>
                                 <td>{post.regDate}</td>
                             </tr>
