@@ -4,6 +4,7 @@ import {ChangeEvent, FormEvent, useState} from "react";
 import {useRouter} from "next/navigation";
 import {useAuthStore} from "@/src/store/useAuthStore";
 import {apiClientJSON} from "@/src/utils/apiClientJSON";
+import {HomeResponse} from "@/src/interfaces/common";
 
 export default function PostWrite(){
 
@@ -43,14 +44,16 @@ export default function PostWrite(){
             const res = await apiClientJSON('/api/post', {
                 method: 'POST',
                 headers: {
-                    //'Authorization': `Bearer ${accessToken}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
             });
 
             console.log('게시글 등록 API');
-            console.log(await res.json());
+
+            const data:HomeResponse<PostResponse> = await res.json()
+
+            console.log(data);
         }catch(err){
             console.log(err)
         }

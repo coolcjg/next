@@ -3,38 +3,11 @@
 import {HomeResponse} from "@/src/interfaces/common";
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
-
-interface Post{
-    postId:number
-}
-
-interface Page{
-    pageNumber:number
-    pageUrl:string
-}
-
-interface ListResponse {
-    list:Post[]
-    totalPage:number
-    totalCount:number
-    pageNumber:number
-    nextPage:string
-    prevPage:string
-    pageList:Page[]
-    searchType:string
-    searchText:string
-}
-
-interface PostListRequest{
-    searchType:string
-    searchText:string
-    pageNumber:number
-    pageSize:number
-}
+import {PostListResponse} from "@/src/interfaces/post/PostListResponse";
 
 export default function PostList(){
 
-    const [data, setData] = useState<ListResponse | null>(null);
+    const [data, setData] = useState<PostListResponse | null>(null);
     const router = useRouter();
 
     useEffect(()=>{
@@ -46,7 +19,7 @@ export default function PostList(){
                 });
 
                 if (response.ok) {
-                    const data : HomeResponse<ListResponse> = await response.json();
+                    const data : HomeResponse<PostListResponse> = await response.json();
                     console.log(data);
                     setData(data.data);
                 } else {

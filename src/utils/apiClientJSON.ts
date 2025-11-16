@@ -7,7 +7,7 @@ async function refreshAccessToken(): Promise<string | null>{
     const { userId, refreshToken, login} = useAuthStore.getState();
 
     if(!refreshToken){
-        alert('Refresh token not provided');
+        console.error('Refresh token not provided');
         return null;
     }
 
@@ -33,17 +33,16 @@ async function refreshAccessToken(): Promise<string | null>{
             login(data.data.accessToken, data.data.refreshToken, data.data.userId)
 
             return data.data.accessToken;
-        }else{
-            throw new Error('토큰 갱신 실패. 다시 로그인하세요.');
+        }else if(response.status === 401){
+            console.error("refreshToken만료");
         }
-
     }catch(error){
         console.error('토큰 갱신중 오류 발생 : ', error);
-
-        //tokenManager.clearTokens();
-        return null;
     }
+
+    return null;
 }
+
 
 export async function apiClientJSON<T>(
     url:string,
@@ -52,6 +51,7 @@ export async function apiClientJSON<T>(
     const {method = "GET", headers = {}, body } = options;
     const {accessToken} = useAuthStore.getState();
     const finalHeaders = new Headers(headers);
+    const {logout} = useAuthStore.getState();
 
     if(accessToken !== undefined && accessToken !== null){
         finalHeaders.append("Authorization", `Bearer ${accessToken}`);
@@ -68,7 +68,7 @@ export async function apiClientJSON<T>(
 
         const newAccessToken = await refreshAccessToken();
 
-        if(newAccessToken){
+        if(newAccessToken != null){
             console.log("AccessToken 갱신 성공. 요청 재시도...");
 
             finalHeaders.delete("Authorization");
@@ -82,7 +82,8 @@ export async function apiClientJSON<T>(
 
             return response;
         }else{
-            throw new Error('재시도가 실패했습니다.');
+            logout();
+            alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
         }
     }
 

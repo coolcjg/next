@@ -1,27 +1,5 @@
 import {NextResponse} from "next/server";
-import {HomeResponse} from "@/src/interfaces/common";
-import {apiClientJSON} from "@/src/utils/apiClientJSON";
 
-interface Post{
-    postId:number
-}
-
-interface Page{
-    pageNumber:number
-    pageUrl:string
-}
-
-interface ListResponse {
-    list:Post[]
-    totalPage:number
-    totalCount:number
-    pageNumber:number
-    nextPage:string
-    prevPage:string
-    pageList:Page[]
-    searchType:string
-    searchText:string
-}
 
 const HOME_URL = process.env.NEXT_PUBLIC_HOME_URL;
 
@@ -32,9 +10,7 @@ export async function GET(req:Request){
         console.log("요청 파라미터");
         console.log(searchParams);
 
-        const page:string = searchParams.get("page") || "1";
-
-        const response = await apiClientJSON<HomeResponse<ListResponse>>(HOME_URL+`/post/list?${searchParams.toString()}`, {
+        const response = await fetch(HOME_URL+'/post/list', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -46,7 +22,7 @@ export async function GET(req:Request){
         console.log("home 결과");
         console.log(json);
 
-        return NextResponse.json(json);
+        return NextResponse.json(json, {status:response.status});
     }catch(error){
         console.error(error);
         return NextResponse.json({message:'로그인 중 오류 발생'}, {status:500});
