@@ -18,12 +18,9 @@ export async function GET(req:Request){
 
         const json = await response.json();
 
-        console.log("home 결과");
-        console.log(json);
-
         return NextResponse.json(json, {status:response.status});
     }catch(error){
         console.error(error);
-        return NextResponse.json({message:'로그인 중 오류 발생'}, {status:500});
+        return NextResponse.json({message:'home 서버 통신 실패'}, {status:500});
     }
 }

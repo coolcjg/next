@@ -4,4 +4,5 @@ export interface Post{
     content:string
     userId:string
     regDate:string
+    open:string
 }

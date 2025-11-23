@@ -40,16 +40,16 @@ export default function PostList(){
                 },
             });
 
+            const data : HomeResponse<PostListResponse> = await response.json();
+
             if (response.ok) {
-                const data : HomeResponse<PostListResponse> = await response.json();
-                console.log(data);
                 setData(data.data);
             } else {
-
+                alert('서버 에러 발생하였습니다. 메시지 : ' + data.message);
             }
 
         }catch(error){
-            console.error('요청 중 오류 발생 : ' + error);
+            console.error('서버 에러 발생 : ' + error);
         }
     };
 
@@ -134,7 +134,7 @@ export default function PostList(){
                 <table>
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="checkAll" checked={checkedItems.length === data.list.length} onChange={(e)=>handleCheckAllItems(e)}/></th>
+                            <th><input type="checkbox" id="checkAll" checked={checkedItems.length != 0 && checkedItems.length === data.list.length} onChange={(e)=>handleCheckAllItems(e)}/></th>
                             <th>제목</th>
                             <th>내용</th>
                             <th>아이디</th>
@@ -145,7 +145,7 @@ export default function PostList(){
                         {data && data.list.map(post =>
                             <tr key={post.postId}>
                                 <td><input type="checkbox" checked={checkedItems.includes(post.postId)} onChange={()=> handleCheckItems(post.postId)}/></td>
-                                <td>{post.title}</td>
+                                <td><a className='basic' href={'/post/'+post.postId}>{post.title}</a></td>
                                 <td>{post.content}</td>
                                 <td>{post.userId}</td>
                                 <td>{post.regDate}</td>

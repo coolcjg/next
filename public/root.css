@@ -11,3 +11,8 @@
 .table-border td{
     border: 1px solid black;
 }
+
+a.basic{
+    color : inherit;
+    text-decoration: none;
+}

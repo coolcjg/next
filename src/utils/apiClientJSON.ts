@@ -35,6 +35,8 @@ async function refreshAccessToken(): Promise<string | null>{
             return data.data.accessToken;
         }else if(response.status === 401){
             console.error("refreshToken만료");
+        }else if(response.status === 500){
+            console.error("서버 통신 오류");
         }
     }catch(error){
         console.error('토큰 갱신중 오류 발생 : ', error);
@@ -62,12 +64,12 @@ export async function apiClientJSON<T>(
         body:body
     });
 
-    if(response.status === 401){
+    if(response.status === 401) {
         console.log("Access Token 만료 감지. 갱신 시도...");
 
         const newAccessToken = await refreshAccessToken();
 
-        if(newAccessToken != null){
+        if (newAccessToken != null) {
             console.log("AccessToken 갱신 성공. 요청 재시도...");
 
             finalHeaders.delete("Authorization");
@@ -75,14 +77,15 @@ export async function apiClientJSON<T>(
 
             response = await fetch(url, {
                 method,
-                headers : finalHeaders,
-                body:body
+                headers: finalHeaders,
+                body: body
             });
 
             return response;
-        }else{
+        } else {
             logout();
             alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+
         }
     }
 
